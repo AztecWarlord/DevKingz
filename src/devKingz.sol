@@ -27,8 +27,6 @@ pragma solidity ^0.8.19;
 
 import {ERC721URIStorage, ERC721} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {VRFConsumerBaseV2Plus} from "@chainlink-brownie/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-import {IVRFCoordinatorV2PlusInternal} from
-    "@chainlink-brownie/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2PlusInternal.sol";
 import {VRFV2PlusClient} from "@chainlink-brownie/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
 /**
@@ -56,13 +54,12 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus {
 
     /* Types of DevKingz */
     enum Dev {
-        SILVERDEV,
         GOLDDEV,
+        SILVERDEV,
         LILDEV
     }
 
     /* Chainlink VRF Variables */
-    IVRFCoordinatorV2PlusInternal private immutable i_vrfCoordinator;
     bytes32 private immutable i_keyHash; // keyHash
     uint256 private immutable i_subId;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
@@ -98,13 +95,11 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus {
         uint256 mintFee,
         string[3] memory devTokenUris
     ) VRFConsumerBaseV2Plus(vrfCoordinatorV2) ERC721("DevKingz", "DKZ") {
-        i_vrfCoordinator = IVRFCoordinatorV2PlusInternal(vrfCoordinatorV2);
         i_keyHash = keyHash;
         i_subId = subId;
         i_mintFee = mintFee;
         i_callbackGasLimit = callbackGasLimit;
         _initializeContract(devTokenUris);
-        s_tokenCounter = 0;
         i_owner = msg.sender;
     }
 
@@ -143,7 +138,7 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus {
         address devOwner = s_requestIdToSender[requestId];
         uint256 newTokenId = s_tokenCounter;
         s_tokenCounter = s_tokenCounter + 1;
-        uint256 moddedRng = (randomWords[0] % MAX_CHANCE_VALUE) + 1;
+        uint256 moddedRng = randomWords[0] % MAX_CHANCE_VALUE;
         Dev devType = getDevFromModdedRng(moddedRng);
         _safeMint(devOwner, newTokenId);
         _setTokenURI(newTokenId, s_devTokenUris[uint256(devType)]);
@@ -151,7 +146,7 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus {
     }
 
     function getChanceArray() public pure returns (uint256[3] memory) {
-        return [20, 40, MAX_CHANCE_VALUE];
+        return [80, 240, MAX_CHANCE_VALUE];
     }
 
     function _initializeContract(string[3] memory devTokenUris) private {

@@ -35,7 +35,7 @@ contract DevKingzTest is Test {
     address public USER = makeAddr("user");
     uint256 public constant STARTING_USER_BALANCE = 10 ether;
     uint256 public constant CONTRACT_BALANCE = 10 ether;
-    uint256 internal constant MAX_CHANCE_VALUE = 500;
+    uint256 internal constant MAX_CHANCE_VALUE = 400;
 
     event NFTRequested(uint256 indexed requestId, address indexed requester);
     event NFTMinted(uint256 indexed tokenId, Dev indexed devType, address indexed minter);
