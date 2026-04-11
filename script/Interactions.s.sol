@@ -1,5 +1,28 @@
 // SPDX-License-Identifier: MIT
 
+//  /$$$$$$$                       /$$   /$$ /$$
+// | $$__  $$                     | $$  /$$/|__/
+// | $$  \ $$  /$$$$$$  /$$    /$$| $$ /$$/  /$$ /$$$$$$$   /$$$$$$  /$$$$$$$$
+// | $$  | $$ /$$__  $$|  $$  /$$/| $$$$$/  | $$| $$__  $$ /$$__  $$|____ /$$/
+// | $$  | $$| $$$$$$$$ \  $$/$$/ | $$  $$  | $$| $$  \ $$| $$  \ $$   /$$$$/
+// | $$  | $$| $$_____/  \  $$$/  | $$\  $$ | $$| $$  | $$| $$  | $$  /$$__/
+// | $$$$$$$/|  $$$$$$$   \  $/   | $$ \  $$| $$| $$  | $$|  $$$$$$$ /$$$$$$$$
+// |_______/  \_______/    \_/    |__/  \__/|__/|__/  |__/ \____  $$|________/
+//                                                         /$$  \ $$
+//                                                        |  $$$$$$/
+//                                                         \______/
+//   _
+//  | |__ _  _
+//  | '_ \ || |
+//  |_.__/\_, |
+//        |__/
+//    _____            __                __      __              .__                   .___
+//   /  _  \ _________/  |_  ____   ____/  \    /  \_____ _______|  |   ___________  __| _/
+//  /  /_\  \\___   /\   __\/ __ \_/ ___\   \/\/   /\__  \\_  __ \  |  /  _ \_  __ \/ __ |
+// /    |    \/    /  |  | \  ___/\  \___\        /  / __ \|  | \/  |_(  <_> )  | \/ /_/ |
+// \____|__  /_____ \ |__|  \___  >\___  >\__/\  /  (____  /__|  |____/\____/|__|  \____ |
+//         \/      \/           \/     \/      \/        \/                             \/
+
 pragma solidity ^0.8.19;
 
 import {Script, console} from "forge-std/Script.sol";
@@ -13,7 +36,7 @@ import {LinkToken} from "../test/mocks/LinkToken.sol";
 contract CreateSubscription is Script {
     function createSubscriptionUsingConfig() public returns (uint256, address) {
         HelperConfig helperConfig = new HelperConfig();
-        address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
+        address vrfCoordinator = helperConfig.getConfig().vrfCoordinatorV2_5;
         (uint256 subId,) = createSubscription(vrfCoordinator);
         return (subId, vrfCoordinator);
     }
@@ -38,7 +61,7 @@ contract FundSubscription is Script, CodeConstants {
 
     function fundSubscriptionUsingConfig() public {
         HelperConfig helperConfig = new HelperConfig();
-        address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
+        address vrfCoordinator = helperConfig.getConfig().vrfCoordinatorV2_5;
         uint256 subId = helperConfig.getConfig().subId;
         address link = helperConfig.getConfig().link;
         fundSubscription(vrfCoordinator, subId, link);
@@ -69,16 +92,16 @@ contract AddConsumer is Script {
     function addConsumerUsingConfig(address mostRecentlyDeployed) public {
         HelperConfig helperConfig = new HelperConfig();
         uint256 subId = helperConfig.getConfig().subId;
-        address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
+        address vrfCoordinator = helperConfig.getConfig().vrfCoordinatorV2_5;
         addConsumer(mostRecentlyDeployed, vrfCoordinator, subId);
     }
 
-    function addConsumer(address contractToAddtoVRF, address vrfCoordinator, uint256 subId) public {
-        console.log("Adding Consumer to VRF Coordinator: ", contractToAddtoVRF);
+    function addConsumer(address contractToAddtoVrf, address vrfCoordinator, uint256 subId) public {
+        console.log("Adding Consumer to VRF Coordinator: ", contractToAddtoVrf);
         console.log("To vrfCoordinator: ", vrfCoordinator);
         console.log("On Chain Id: ", block.chainid); // 31337
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(subId, contractToAddtoVRF);
+        VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(subId, contractToAddtoVrf);
         vm.stopBroadcast();
     }
 
@@ -86,5 +109,19 @@ contract AddConsumer is Script {
         // Add Consumer
         address mostRecentlyDeployed = DevOpsTools.get_most_recent_deployment("DevKingz", block.chainid);
         addConsumerUsingConfig(mostRecentlyDeployed);
+    }
+}
+
+contract RequestNft is Script {
+    function run() external {
+        address mostRecentlyDeployedDevKingz = DevOpsTools.get_most_recent_deployment("DevKingz", block.chainid);
+        requestNftFromContract(mostRecentlyDeployedDevKingz);
+    }
+
+    function requestNftFromContract(address devKingz) public {
+        console.log("Requesting NFT from: ", devKingz);
+        vm.startBroadcast();
+        DevKingz(devKingz).requestNft{value: 0.1 ether}();
+        vm.stopBroadcast();
     }
 }

@@ -33,10 +33,10 @@ format :; forge fmt
 
 anvil :; anvil -m 'test test test test test test test test test test test junk' --steps-tracing --block-time 1
 
-NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
+NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast -vvvv
 
 deploy_base-sepolia:
-	@forge script scripts/DeployDevKingz.s.sol:DeployDevKingz --rpc-url $(BASE_SEPOLIA_CHAIN_ID) --account my_key --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
+	@forge script script/DeployDevKingz.s.sol:DeployDevKingz --rpc-url $(BASE_SEPOLIA_CHAIN_ID) --account my_key --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 
 ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
 	NETWORK_ARGS := --rpc-url $(BASE_SEPOLIA_CHAIN_ID) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
@@ -53,3 +53,6 @@ addConsumer:
 
 fundSubscription:
 	@forge script script/Interactions.s.sol:FundSubscription $(NETWORK_ARGS)
+
+mint:
+	@forge script script/Interactions.s.sol:RequestNft $(NETWORK_ARGS)
