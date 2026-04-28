@@ -27,18 +27,28 @@ pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
 import {DevKingz} from "../src/devKingz.sol";
-import {HelperConfig} from "../script/HelperConfig.s.sol";
+import {HelperConfig, CodeConstants} from "../script/HelperConfig.s.sol";
 import {AddConsumer, CreateSubscription, FundSubscription} from "../script/Interactions.s.sol";
+/*
+ * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally. 
+*/
+import {VRFCoordinatorV2_5Mock} from "../test/mocks/VRFCoordinatorV2_5Mock_V2.sol";
 
-contract DeployDevKingz is Script {
-    function run() public {}
+contract DeployDevKingz is Script, CodeConstants {
+    function run() public {
+        deployDevKingz();
+    }
+
+    uint256 public constant SUB_FUND_AMOUNT = 100 ether; // 100 LINK
 
     function deployDevKingz() public returns (DevKingz, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
         // local -> deploy mock, get local config
         // sepolia -> get sepolia config
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
-
+        if (block.chainid != LOCAL_CHAIN_ID && config.subId == 0) {
+            revert HelperConfig.HelperConfig__UpdateSubscriptionId();
+        }
         if (config.subId == 0) {
             // create subscription
             CreateSubscription createSubscription = new CreateSubscription();
@@ -57,10 +67,9 @@ contract DeployDevKingz is Script {
             config.mintFee,
             config.devTokenUris
         );
-        vm.stopBroadcast();
 
-        AddConsumer addConsumer = new AddConsumer();
-        addConsumer.addConsumer(address(devKingz), config.vrfCoordinatorV2_5, config.subId);
+        VRFCoordinatorV2_5Mock(config.vrfCoordinatorV2_5).addConsumer(config.subId, address(devKingz));
+        vm.stopBroadcast();
 
         return (devKingz, helperConfig);
     }

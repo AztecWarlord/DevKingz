@@ -66,15 +66,15 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
     }
 
     /* Chainlink VRF Variables */
-    IVRFCoordinatorV2PlusInternal private immutable I_VRF_COORDINATOR;
-    bytes32 private immutable I_KEY_HASH; // keyHash
-    uint256 private immutable I_SUB_ID;
+    IVRFCoordinatorV2PlusInternal private immutable i_vrfCoordinator;
+    bytes32 private immutable i_keyHash; // keyHash
+    uint256 private immutable i_subId;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
-    uint32 private immutable I_CALLBACK_GAS_LIMIT;
+    uint32 private immutable i_callbackGasLimit;
     uint32 private constant NUM_WORDS = 1;
 
     /* NFT Variables */
-    uint256 private immutable I_MINT_FEE;
+    uint256 private immutable i_mintFee;
     uint256 private s_tokenCounter = 0;
     uint256 internal constant MAX_CHANCE_VALUE = 400;
     uint256 public constant MAX_SUPPLY = 400;
@@ -82,7 +82,7 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
     bool private s_initialized;
 
     /* OnlyOwner Variables */
-    address private immutable I_OWNER;
+    address private immutable i_owner;
 
     /* VRF Helpers */
     mapping(uint256 => address) private s_requestIdToSender;
@@ -100,14 +100,14 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
         uint256 mintFee,
         string[3] memory devTokenUris
     ) VRFConsumerBaseV2Plus(vrfCoordinatorV2) ERC721("DevKingz", "DKZ") {
-        s_vrfCoordinator = IVRFCoordinatorV2PlusInternal(vrfCoordinatorV2);
-        I_KEY_HASH = keyHash;
-        I_SUB_ID = subId;
-        I_MINT_FEE = mintFee;
-        I_CALLBACK_GAS_LIMIT = callbackGasLimit;
+        i_vrfCoordinator = IVRFCoordinatorV2PlusInternal(vrfCoordinatorV2);
+        i_keyHash = keyHash;
+        i_subId = subId;
+        i_mintFee = mintFee;
+        i_callbackGasLimit = callbackGasLimit;
         _initializeContract(devTokenUris);
-        s_tokenCounter = 0;
-        I_OWNER = msg.sender;
+        //s_tokenCounter = 0;
+        i_owner = msg.sender;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
     }
 
     function _onlyWarlord() internal view {
-        if (msg.sender != I_OWNER) revert DevKingz__NotWarlord();
+        if (msg.sender != i_owner) revert DevKingz__NotWarlord();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -134,12 +134,12 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
      *      Calls a request for randomness from Chainlink VRF.
      *      Then emits an event
      */
-    function requestNft() external payable returns (uint256 requestId) {
-        if (msg.value < I_MINT_FEE) {
+    function requestNft() external payable nonReentrant returns (uint256 requestId) {
+        if (msg.value < i_mintFee) {
             revert DevKingz__NeedMoreEthSent();
         }
 
-        uint256 excess = msg.value - I_MINT_FEE;
+        uint256 excess = msg.value - i_mintFee;
 
         if (s_tokenCounter >= MAX_SUPPLY) {
             revert DevKingz__MaxSupplyReached();
@@ -150,12 +150,12 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
             if (!refunded) revert DevKingz__TransferFailed();
         }
 
-        requestId = s_vrfCoordinator.requestRandomWords(
+        requestId = i_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
-                keyHash: I_KEY_HASH,
-                subId: I_SUB_ID,
+                keyHash: i_keyHash,
+                subId: i_subId,
                 requestConfirmations: REQUEST_CONFIRMATIONS,
-                callbackGasLimit: I_CALLBACK_GAS_LIMIT,
+                callbackGasLimit: i_callbackGasLimit,
                 numWords: NUM_WORDS,
                 extraArgs: VRFV2PlusClient._argsToBytes(VRFV2PlusClient.ExtraArgsV1({nativePayment: false}))
             })
@@ -216,13 +216,13 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
      *      If the moddedRng is between 101 and 400, we mint a LilDev (Common).
      */
     function getDevFromModdedRng(uint256 moddedRng) public pure returns (Dev) {
-        uint256 cummulativeSum = 1;
+        uint256 cumulativeSum = 1;
         uint256[3] memory chanceArray = getChanceArray();
         for (uint256 i = 0; i < chanceArray.length; i++) {
-            if (moddedRng >= cummulativeSum && moddedRng <= chanceArray[i]) {
+            if (moddedRng >= cumulativeSum && moddedRng <= chanceArray[i]) {
                 return Dev(i);
             }
-            cummulativeSum = chanceArray[i] + 1;
+            cumulativeSum = chanceArray[i] + 1;
         }
         revert DevKingz__RangeOutOfBounds();
     }
@@ -240,11 +240,11 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
             revert DevKingz__NoFundsToWithdraw();
         }
         // Robust transfer with error handling
-        (bool success,) = payable(I_OWNER).call{value: amount}("");
+        (bool success,) = payable(i_owner).call{value: amount}("");
         if (!success) {
             revert DevKingz__TransferFailed();
         }
-        emit WithdrawFunds(I_OWNER, amount);
+        emit WithdrawFunds(i_owner, amount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
      * @dev Getter functions for the contract variables. These are not strictly necessary, but they are useful for testing and for external users to interact with the contract.
      */
     function getMintFee() external view returns (uint256) {
-        return I_MINT_FEE;
+        return i_mintFee;
     }
 
     function getDevTokenUris(uint256 index) external view returns (string memory) {

@@ -28,7 +28,7 @@ pragma solidity ^0.8.19;
 import {Test, console} from "forge-std/Test.sol";
 import {DeployDevKingz} from "../../script/DeployDevKingz.s.sol";
 import {DevKingz} from "../../src/devKingz.sol";
-import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {HelperConfig, CodeConstants} from "../../script/HelperConfig.s.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {VRFCoordinatorV2_5Mock} from "@chainlink-brownie/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 
@@ -37,6 +37,7 @@ contract DevKingzTest is Test {
     string constant NFT_SYMBOL = "DKZ";
     DevKingz public devKingz;
     HelperConfig public helperConfig;
+    CodeConstants public codeConstants;
     uint256 constant BASE_SEPOLIA_CHAIN_ID = 84532;
 
     error DevKingz__NotWarlord();

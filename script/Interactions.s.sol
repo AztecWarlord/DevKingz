@@ -29,9 +29,12 @@ import {Script, console} from "forge-std/Script.sol";
 import {HelperConfig} from "../script/HelperConfig.s.sol";
 import {DevKingz} from "../src/devKingz.sol";
 import {DevOpsTools} from "foundry-devops/src/DevOpsTools.sol";
-import {VRFCoordinatorV2_5Mock} from "@chainlink-brownie/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {CodeConstants} from "../script/HelperConfig.s.sol";
 import {LinkToken} from "../test/mocks/LinkToken.sol";
+/*
+ * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally. 
+*/
+import {VRFCoordinatorV2_5Mock} from "../test/mocks/VRFCoordinatorV2_5Mock_V2.sol";
 
 contract CreateSubscription is Script {
     function createSubscriptionUsingConfig() public returns (uint256, address) {
@@ -88,7 +91,7 @@ contract FundSubscription is Script, CodeConstants {
     }
 }
 
-contract AddConsumer is Script {
+contract AddConsumer is Script, CodeConstants {
     function addConsumerUsingConfig(address mostRecentlyDeployed) public {
         HelperConfig helperConfig = new HelperConfig();
         uint256 subId = helperConfig.getConfig().subId;
@@ -121,7 +124,9 @@ contract RequestNft is Script {
     function requestNftFromContract(address devKingz) public {
         console.log("Requesting NFT from: ", devKingz);
         vm.startBroadcast();
-        DevKingz(devKingz).requestNft{value: 0.1 ether}();
+        uint256 mintFee = DevKingz(devKingz).getMintFee();
+        console.log("Mint fee is: ", mintFee);
+        DevKingz(devKingz).requestNft{value: mintFee}();
         vm.stopBroadcast();
     }
 }

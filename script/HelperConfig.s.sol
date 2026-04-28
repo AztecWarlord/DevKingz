@@ -26,8 +26,11 @@
 pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
-import {VRFCoordinatorV2_5Mock} from "@chainlink-brownie/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {LinkToken} from "../test/mocks/LinkToken.sol";
+/*
+ * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally. 
+*/
+import {VRFCoordinatorV2_5Mock} from "../test/mocks/VRFCoordinatorV2_5Mock_V2.sol";
 
 abstract contract CodeConstants {
     /* VRF Mock Values */
@@ -38,13 +41,14 @@ abstract contract CodeConstants {
 
     address public foundryDefaultSender = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
-    // uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
+    uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
     uint256 public constant BASE_SEPOLIA_CHAIN_ID = 84532;
     uint256 public constant LOCAL_CHAIN_ID = 31337;
 }
 
 contract HelperConfig is Script, CodeConstants {
     error HelperConfig__ChainIdNotFound();
+    error HelperConfig__UpdateSubscriptionId();
 
     struct NetworkConfig {
         address vrfCoordinatorV2_5;
@@ -63,10 +67,10 @@ contract HelperConfig is Script, CodeConstants {
         networkConfigs[BASE_SEPOLIA_CHAIN_ID] = getSepoliaBaseConfig();
     }
 
-    function getConfigByChainId(uint256 chainId) public returns (NetworkConfig memory) {
-        if (networkConfigs[chainId].vrfCoordinatorV2_5 != address(0)) {
-            return networkConfigs[chainId];
-        } else if (chainId == LOCAL_CHAIN_ID) {
+    function getConfigByChainId(uint256 chainid) public returns (NetworkConfig memory) {
+        if (networkConfigs[chainid].vrfCoordinatorV2_5 != address(0)) {
+            return networkConfigs[chainid];
+        } else if (chainid == LOCAL_CHAIN_ID) {
             return getOrCreatAnvilEthConfig();
         } else {
             revert HelperConfig__ChainIdNotFound();
@@ -108,7 +112,7 @@ contract HelperConfig is Script, CodeConstants {
             vrfCoordinatorV2_5: address(vrfCoordinator),
             subId: 0,
             keyHash: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae, // doesn't matter
-            callbackGasLimit: 500000,
+            callbackGasLimit: 5000000,
             mintFee: 0.01 ether,
             devTokenUris: [
                 "ipfs://bafybeiconkqwrhofxdfxmergoqcdtbxs5khgc4a3yvo62m5s6geei2tlay",

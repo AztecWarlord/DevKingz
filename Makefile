@@ -33,7 +33,7 @@ format :; forge fmt
 
 anvil :; anvil -m 'test test test test test test test test test test test junk' --steps-tracing --block-time 1
 
-NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast -vvvv
+NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast 
 
 deploy_base-sepolia:
 	@forge script script/DeployDevKingz.s.sol:DeployDevKingz --rpc-url $(BASE_SEPOLIA_CHAIN_ID) --account my_key --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
@@ -56,3 +56,6 @@ fundSubscription:
 
 mint:
 	@forge script script/Interactions.s.sol:RequestNft $(NETWORK_ARGS)
+
+# For local testing, you can use the following command to deploy the contract to your local Anvil instance:
+# forge script script/DeployDevKingz.s.sol:DeployDevKingz --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
