@@ -28,7 +28,7 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import {LinkToken} from "../test/mocks/LinkToken.sol";
 /*
- * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally. 
+ * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally.
 */
 import {VRFCoordinatorV2_5Mock} from "../test/mocks/VRFCoordinatorV2_5Mock_V2.sol";
 

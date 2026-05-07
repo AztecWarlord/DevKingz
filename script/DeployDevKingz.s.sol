@@ -30,7 +30,7 @@ import {DevKingz} from "../src/devKingz.sol";
 import {HelperConfig, CodeConstants} from "../script/HelperConfig.s.sol";
 import {AddConsumer, CreateSubscription, FundSubscription} from "../script/Interactions.s.sol";
 /*
- * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally. 
+ * @dev This import is used to avoid overflow from the VRFCoordinatorV2_5Mock when testing locally.
 */
 import {VRFCoordinatorV2_5Mock} from "../test/mocks/VRFCoordinatorV2_5Mock_V2.sol";
 

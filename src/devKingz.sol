@@ -184,7 +184,7 @@ contract DevKingz is ERC721URIStorage, VRFConsumerBaseV2Plus, ReentrancyGuard {
         s_tokenCounter = s_tokenCounter + 1;
         uint256 moddedRng = (randomWords[0] % MAX_CHANCE_VALUE) + 1;
         Dev devType = getDevFromModdedRng(moddedRng);
-        _safeMint(devOwner, newTokenId);
+        _safeMint(devOwner, uint256(newTokenId));
         _setTokenURI(newTokenId, s_devTokenUris[uint256(devType)]);
         emit NFTMinted(newTokenId, devType, devOwner);
     }
